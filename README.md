@@ -1,2 +1,2 @@
 # android_mizzou_dining_info
-Android version
+ECE 3220 Mizzou Dining Info Android version
