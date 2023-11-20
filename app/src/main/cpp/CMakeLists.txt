@@ -5,6 +5,8 @@
 # Sets the minimum CMake version required for this project.
 cmake_minimum_required(VERSION 3.22.1)
 
+set(distribution_DIR ${CMAKE_CURRENT_SOURCE_DIR}/../../../../distribution)
+
 # Declares the project name. The project name can be accessed via ${ PROJECT_NAME},
 # Since this is the top level CMakeLists.txt, the project name is also accessible
 # with ${CMAKE_PROJECT_NAME} (both CMake variables are in-sync within the top level
@@ -28,10 +30,18 @@ add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
         native-lib.cpp)
 
+add_library(libxml2 STATIC IMPORTED)
+set_target_properties(libxml2
+        PROPERTIES IMPORTED_LOCATION
+        ${distribution_DIR}/libxml2/lib/${ANDROID_ABI}/libxml2.a)
+target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
+        ${distribution_DIR}/libxml2/include)
+
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
 # build script, prebuilt third-party libraries, or Android system libraries.
 target_link_libraries(${CMAKE_PROJECT_NAME}
         # List libraries link to the target library
-        android
-        log)
+        android # provided by android
+        log # provided by android
+        libxml2)
