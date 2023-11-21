@@ -1,17 +1,16 @@
 #include <jni.h>
+#include <android/log.h>
+
 #include <string>
 
-#include <stdio.h>
-#include <libxml/parser.h>
-#include <libxml/tree.h>
-
-#include <android/log.h>
+#include <libxml/HTMLparser.h>
+#include <libxml/HTMLtree.h>
 
 // redefine printf to use the android log
 #define printf(...) __android_log_print(ANDROID_LOG_DEBUG, "native-lib", __VA_ARGS__)
 
 // taken from http://xmlsoft.org/examples/#tree1.c
-void print_element_names(xmlNode * a_node)
+static void print_element_names(xmlNode* a_node)
 {
     xmlNode *cur_node = NULL;
 
@@ -30,19 +29,19 @@ void print_element_names(xmlNode * a_node)
 */
 
 extern "C" JNIEXPORT jstring JNICALL
-Java_com_example_myapplication_MainActivity_parseXML(
+Java_com_example_myapplication_MainActivity_parseHTML(
         JNIEnv* env,
         jobject, /* this */
-        jstring _xmlPath) {
+        jstring _htmlPath) {
 
     // convert Java string to C++ string
-    std::string xmlPath(env->GetStringUTFChars(_xmlPath, 0));
+    std::string htmlPath(env->GetStringUTFChars(_htmlPath, 0));
 
-    // parse the xml document
-    xmlDoc *doc = NULL;
-    xmlNode *root_element = NULL;
+    // parse the HTML document
+    xmlDoc* doc = NULL;
+    xmlNode* root_element = NULL;
 
-    doc = xmlReadFile(xmlPath.c_str(), NULL, 0);
+    doc = htmlReadFile(htmlPath.c_str(), NULL, 0);
 
     if (doc == NULL) {
         return env->NewStringUTF("could not parse");
@@ -53,5 +52,5 @@ Java_com_example_myapplication_MainActivity_parseXML(
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
-    return env->NewStringUTF("parsed, see logcat output");
+    return env->NewStringUTF("parsed, see logcat output!");
 }

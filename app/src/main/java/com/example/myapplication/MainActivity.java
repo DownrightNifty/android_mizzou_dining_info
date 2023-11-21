@@ -2,7 +2,6 @@ package com.example.myapplication;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.content.Context;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.widget.TextView;
@@ -13,8 +12,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
@@ -26,6 +23,9 @@ public class MainActivity extends AppCompatActivity {
 
     private ActivityMainBinding binding;
 
+    // relative to app/src/main/assets/
+    final static String EXAMPLE_DOC_FN = "locations.html";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         // BOILERPLATE: initialize stuff
@@ -36,22 +36,22 @@ public class MainActivity extends AppCompatActivity {
 
         // appDataDir will be something like "/data/user/0/com.example.myapplication/files"
         String appDataDir = this.getApplicationContext().getFilesDir().toString();
-        String xmlPath = appDataDir + "/customer_sales.xml";
+        String htmlPath = appDataDir + "/" + EXAMPLE_DOC_FN;
 
-        // BOILERPLATE: copy from assets/customer_sales.xml to <appDataDir>/customer_sales.xml
+        // BOILERPLATE: copy from assets/ to <appDataDir>/
         AssetManager am = this.getAssets();
-        InputStream is; try { is = am.open("customer_sales.xml"); } catch (IOException e) { throw new RuntimeException(e); }
+        InputStream is; try { is = am.open(EXAMPLE_DOC_FN); } catch (IOException e) { throw new RuntimeException(e); }
         Scanner scanner = new Scanner(is).useDelimiter("\\A"); String contents = scanner.hasNext() ? scanner.next() : "";
-        PrintWriter pw; try { pw = new PrintWriter(xmlPath); } catch (FileNotFoundException e) { throw new RuntimeException(e); }
+        PrintWriter pw; try { pw = new PrintWriter(htmlPath); } catch (FileNotFoundException e) { throw new RuntimeException(e); }
         pw.print(contents); pw.close();
 
         // set the TextView's text to the output of the C++ parseXML() function
-        textView.setText(parseXML(xmlPath));
+        textView.setText(parseHTML(htmlPath));
     }
 
     /**
      * A native method that is implemented by the 'myapplication' native library,
      * which is packaged with this application.
      */
-    public native String parseXML(String xmlPath);
+    public native String parseHTML(String htmlPath);
 }
