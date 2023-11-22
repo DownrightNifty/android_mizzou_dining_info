@@ -28,14 +28,28 @@ project("myapplication")
 # used in the AndroidManifest.xml file.
 add_library(${CMAKE_PROJECT_NAME} SHARED
         # List C/C++ source files with relative paths to this CMakeLists.txt.
-        native-lib.cpp)
+        native-lib.cpp
+        httplib.cc
+        httplib.h)
 
 add_library(libxml2 STATIC IMPORTED)
 set_target_properties(libxml2
         PROPERTIES IMPORTED_LOCATION
         ${distribution_DIR}/libxml2/lib/${ANDROID_ABI}/libxml2.a)
+
+add_library(libssl STATIC IMPORTED)
+set_target_properties(libssl
+        PROPERTIES IMPORTED_LOCATION
+        ${distribution_DIR}/openssl/lib/${ANDROID_ABI}/libssl.a)
+
+add_library(libcrypto STATIC IMPORTED)
+set_target_properties(libcrypto
+        PROPERTIES IMPORTED_LOCATION
+        ${distribution_DIR}/openssl/lib/${ANDROID_ABI}/libcrypto.a)
+
 target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
-        ${distribution_DIR}/libxml2/include)
+        ${distribution_DIR}/libxml2/include
+        ${distribution_DIR}/openssl/include)
 
 # Specifies libraries CMake should link to your target library. You
 # can link libraries from various origins, such as libraries defined in this
@@ -44,4 +58,6 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         # List libraries link to the target library
         android # provided by android
         log # provided by android
-        libxml2)
+        libxml2
+        libssl
+        libcrypto)
