@@ -16,15 +16,17 @@ import java.util.Scanner;
 
 public class MainActivity extends AppCompatActivity {
 
+    // If debug mode is on, the cached locations.html will be used instead of live data.
+    final static boolean DEBUG_MODE = true;
+
+    // relative to app/src/main/assets/
+    final static String CACHED_HTML_FN = "locations.html";
+
     // Used to load the 'myapplication' library on application startup.
     static {
         System.loadLibrary("myapplication");
     }
-
     private ActivityMainBinding binding;
-
-    // relative to app/src/main/assets/
-    final static String EXAMPLE_DOC_FN = "locations.html";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,22 +38,24 @@ public class MainActivity extends AppCompatActivity {
 
         // appDataDir will be something like "/data/user/0/com.example.myapplication/files"
         String appDataDir = this.getApplicationContext().getFilesDir().toString();
-        String htmlPath = appDataDir + "/" + EXAMPLE_DOC_FN;
+        String cachedHtmlPath = appDataDir + "/" + CACHED_HTML_FN;
 
         // BOILERPLATE: copy from assets/ to <appDataDir>/
         AssetManager am = this.getAssets();
-        InputStream is; try { is = am.open(EXAMPLE_DOC_FN); } catch (IOException e) { throw new RuntimeException(e); }
+        InputStream is; try { is = am.open(CACHED_HTML_FN); } catch (IOException e) { throw new RuntimeException(e); }
         Scanner scanner = new Scanner(is).useDelimiter("\\A"); String contents = scanner.hasNext() ? scanner.next() : "";
-        PrintWriter pw; try { pw = new PrintWriter(htmlPath); } catch (FileNotFoundException e) { throw new RuntimeException(e); }
+        PrintWriter pw; try { pw = new PrintWriter(cachedHtmlPath); } catch (FileNotFoundException e) { throw new RuntimeException(e); }
         pw.print(contents); pw.close();
 
-        // set the TextView's text to the output of the C++ parseXML() function
-        textView.setText(parseHTML(htmlPath));
+        // set the TextView's text to the output of the C++ getScheduleData() function
+        // TODO: use today's date instead of hardcoded value
+        String date = "2023-11-21";
+        textView.setText(getScheduleData(date, DEBUG_MODE, cachedHtmlPath));
     }
 
     /**
      * A native method that is implemented by the 'myapplication' native library,
      * which is packaged with this application.
      */
-    public native String parseHTML(String htmlPath);
+    public native String getScheduleData(String date, boolean debugMode, String cachedHtmlPath);
 }
