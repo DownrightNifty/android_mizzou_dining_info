@@ -3,8 +3,12 @@
 
 # the build scripts are adapted from https://github.com/djp952/prebuilt-libxml2
 
+# options="--with-pic --disable-shared --without-iconv --without-ftp --without-legacy --without-c14n --without-catalog --without-http --without-writer --without-schematron --without-docbook --without-output --without-push --without-modules --without-tree --without-xptr --without-xinclude --without-xpath --without-schemas --without-sax1 --without-iso8859x --without-python --without-zlib --without-lzma"
+
+options="--with-pic --disable-shared --without-python"
+
 # install build deps
-sudo apt install autoconf pkgconf libtool make
+# sudo apt install autoconf pkgconf libtool make
 
 # download the Android NDK if it's not present
 if [ ! -d android-ndk-r20b/ ]; then
@@ -23,15 +27,15 @@ mkdir out/android/
 mkdir out/gnulinux/
 
 # build for Android
-./build_android_arm64.sh
+./build_android_arm64.sh "$options"
 mv libxml2/out/ out/android/arm64/
-./build_android_arm.sh
+./build_android_arm.sh "$options"
 mv libxml2/out/ out/android/arm/
-./build_android_x86.sh
+./build_android_x86.sh "$options"
 mv libxml2/out/ out/android/x86/
-./build_android_x64.sh
+./build_android_x64.sh "$options"
 mv libxml2/out/ out/android/x64
 
 # also build for GNU/Linux (for testing)
-./build_gnulinux_x64.sh
-mv libxml2/out/ out/gnulinux/x64/
+#./build_gnulinux_x64.sh "$options"
+#mv libxml2/out/ out/gnulinux/x64/
