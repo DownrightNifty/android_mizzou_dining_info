@@ -60,4 +60,5 @@ target_link_libraries(${CMAKE_PROJECT_NAME}
         log # provided by android
         libxml2
         libssl
-        libcrypto)
+        libcrypto
+        z)
