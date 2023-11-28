@@ -24,6 +24,18 @@ static void print_element_names(xmlNode* a_node)
     }
 }
 
+// searches for a child element of node with the provided string "name"
+// results vector must be allocated by the caller
+void getElementsByTagName(xmlNode* node, std::string name, std::vector<xmlNode*>& results) {
+    xmlNode *currNode = NULL;
+    for (currNode = node; currNode; currNode = currNode->next) {
+        if (currNode->type == XML_ELEMENT_NODE && std::string((const char*)currNode->name) == name) {
+            results.push_back(currNode);
+        }
+        getElementsByTagName(currNode->children, name, results);
+    }
+}
+
 /*
  * If debug mode is ON:
  * Fetches schedule data from a cached HTML file.
@@ -89,7 +101,12 @@ Java_com_example_myapplication_MainActivity_getScheduleData(
 
     // parse the document
     xmlNode* root_element = xmlDocGetRootElement(doc);
-    print_element_names(root_element);
+//    print_element_names(root_element);
+    std::vector<xmlNode*> results;
+    getElementsByTagName(root_element, "table", results);
+    for (xmlNode* node : results) {
+        printf("%s\n", node->name);
+    }
     xmlFreeDoc(doc);
     xmlCleanupParser();
 
