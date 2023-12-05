@@ -23,11 +23,72 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 import java.util.Scanner;
 
-// NOTE: as is, the TextView contents will be cleared when the user switches between fragments
-// (home, locations, and search), this will be fixed by observing the switch and resetting the
-// fragment as needed, don't worry for now
+// these classes are one-to-one mapping to the C++ versions
+
+class TimeBlock {
+    String label;
+    int start;
+    int end;
+
+//    TimeBlock(String _label, int _start, int _end) {
+//        label = _label; start = _start; end = _end;
+//    }
+}
+
+class Location {
+    String name;
+    double latitude;
+    double longitude;
+    String strHours;
+    boolean favorite;
+    boolean open;
+    ArrayList<TimeBlock> hours;
+
+//    Location(String _name, double _latitude, double _longitude, String _strHours, boolean _favorite, boolean _open, ArrayList<TimeBlock> _hours) {
+//        name = _name; latitude = _latitude; longitude = _longitude; strHours = _strHours; favorite = _favorite; open = _open; hours = _hours;
+//    }
+}
+
+class Util {
+    static boolean strToBool(String s) { return s.equals("1"); }
+
+    static ArrayList<Location> deserializeLocations(String serializedLocations) {
+        ArrayList<Location> locations = new ArrayList<>();
+
+        String[] serLocationObjs = serializedLocations.split("\\|\\|\\|\\|");
+        for (String serLocObj : serLocationObjs) {
+            Location l = new Location();
+            String[] serLocProps = serLocObj.split("\\|\\|\\|");
+            l.name = serLocProps[0];
+            l.latitude = Double.parseDouble(serLocProps[1]);
+            l.longitude = Double.parseDouble(serLocProps[2]);
+            l.strHours = serLocProps[3];
+            l.favorite = strToBool(serLocProps[4]);
+            l.open = strToBool(serLocProps[5]);
+
+            // extract location hours
+            ArrayList<TimeBlock> timeBlocks = new ArrayList<>();
+            String[] serTimeBlocks = serLocProps[6].split("\\|\\|");
+            for (String serTimeBlock : serTimeBlocks) {
+                TimeBlock tb = new TimeBlock();
+                String[] serTBProps = serTimeBlock.split("\\|");
+                tb.label = serTBProps[0];
+                tb.start = Integer.parseInt(serTBProps[1]);
+                tb.end = Integer.parseInt(serTBProps[2]);
+                timeBlocks.add(tb);
+            }
+            l.hours = timeBlocks;
+
+            locations.add(l);
+        }
+
+        return locations;
+    }
+}
 
 public class MainActivity extends AppCompatActivity {
 
@@ -72,12 +133,18 @@ public class MainActivity extends AppCompatActivity {
         PrintWriter pw; try { pw = new PrintWriter(cachedHtmlPath); } catch (FileNotFoundException e) { throw new RuntimeException(e); }
         pw.print(contents); pw.close();
 
-        // set the TextView's text to the output of the C++ getScheduleData() function
+        // call C++ getScheduleData() function
         // TODO: use today's date instead of hardcoded value
         String date = "2023-12-05";
-        System.out.println(getScheduleData(date, DEBUG_MODE, cachedHtmlPath));
-    }
+        String serializedLocations = getScheduleData(date, DEBUG_MODE, cachedHtmlPath);
 
+        ArrayList<Location> locations = Util.deserializeLocations(serializedLocations);
+        System.out.println("Locations:");
+        for (Location l : locations) {
+            System.out.println(l.name);
+            System.out.println(l.strHours);
+        }
+    }
 
     /**
      * A native method that is implemented by the 'myapplication' native library,

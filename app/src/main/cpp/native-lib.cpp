@@ -357,6 +357,68 @@ int searchByName(const std::vector<HardCodedLocation>& hcls, std::string name, H
     return 0;
 }
 
+// chop off n chars from end of s
+void rchop(std::string& s, int n) {
+    s.erase(s.size() - n, n);
+}
+
+// convert a Location vector into a String to easily pass it to Java
+// (the deserialization happens in MainActivity.java)
+//
+// output looks like:
+// [location]||||[location]||||...
+//
+// [location] looks like:
+// Baja Grill|||38.943203153879246|||-92.3267064269865|||[strHours]|||0|||1|||[timeBlocks]
+//
+// [timeBlocks] looks like:
+// Lunch|100|200||Dinner|300|400||Late-night|500|600||...
+std::string serializeLocations(const std::vector<Location>& locations) {
+    std::string out;
+
+    // extract each Location
+
+    for (const Location& l : locations) {
+        std::string serializedLoc;
+
+        // extract each Location parameter
+
+        // for (int i = 0; i < 7; i++) {
+        //
+        //     serializedLoc += "|||";
+        // }
+        {
+            serializedLoc += l.name + "|||";
+            serializedLoc += std::to_string(l.latitude) + "|||";
+            serializedLoc += std::to_string(l.longitude) + "|||";
+            serializedLoc += l.strHours + "|||";
+            serializedLoc += std::to_string(l.favorite) + "|||";
+            serializedLoc += std::to_string(l.open) + "|||";
+
+            // extract each TimeBlock
+            for (const TimeBlock& tb : l.hours) {
+                // extract each TimeBlock parameter
+                {
+                    serializedLoc += tb.label + "|";
+                    serializedLoc += std::to_string(tb.start) + "|";
+                    serializedLoc += std::to_string(tb.end);
+                    // at the end, don't add a final "|"
+                }
+
+                serializedLoc += "||";
+            }
+            rchop(serializedLoc, 2);
+
+        }
+        // rchop(out, 3); // chop off trailing delim
+
+        out += serializedLoc + "||||";
+    }
+    rchop(out, 4); // chop off trailing delim
+
+    return out;
+}
+
 /*
  * If debug mode is ON:
  * Fetches schedule data from a cached HTML file.
@@ -382,7 +444,7 @@ Java_com_example_myapplication_MainActivity_getScheduleData(
     std::string cachedHtmlPath(env->GetStringUTFChars(_cachedHtmlPath, 0));
 
     // the output of the function (basic status info, displayed in TextView)
-    std::string out = "TODO OUTPUT";
+    std::string out;
 
     // Hardcode GPS coordinates for Mizzou dining locations
     std::vector<HardCodedLocation> hardcodedLocations = {
@@ -439,6 +501,8 @@ Java_com_example_myapplication_MainActivity_getScheduleData(
             dlog("====================\n");
         }
     }
+
+    out = serializeLocations(locations);
 
     return env->NewStringUTF(out.c_str());
 }
