@@ -9,10 +9,13 @@ import androidx.navigation.ui.NavigationUI;
 import android.content.res.AssetManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
 import android.widget.TextView;
 
 import com.example.myapplication.databinding.ActivityMainBinding;
 import com.example.myapplication.databinding.FragmentHomeBinding;
+import com.example.myapplication.databinding.FragmentSearchBinding;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.color.DynamicColors;
 
@@ -39,6 +42,7 @@ public class MainActivity extends AppCompatActivity {
         System.loadLibrary("myapplication");
     }
     private ActivityMainBinding binding;
+    private FragmentSearchBinding binding2;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +52,7 @@ public class MainActivity extends AppCompatActivity {
         binding = ActivityMainBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
 
+
         BottomNavigationView navView = findViewById(R.id.nav_view);
         AppBarConfiguration appBarConfiguration = new AppBarConfiguration.Builder(
                 R.id.navigation_locations, R.id.navigation_home, R.id.navigation_search)
@@ -55,8 +60,6 @@ public class MainActivity extends AppCompatActivity {
         NavController navController = Navigation.findNavController(this, R.id.nav_host_fragment_activity_main);
         NavigationUI.setupActionBarWithNavController(this, navController, appBarConfiguration);
         NavigationUI.setupWithNavController(binding.navView, navController);
-
-        TextView textView = findViewById(R.id.text_home);
 
         // appDataDir will be something like "/data/user/0/com.example.myapplication/files"
         String appDataDir = this.getApplicationContext().getFilesDir().toString();
@@ -71,8 +74,8 @@ public class MainActivity extends AppCompatActivity {
 
         // set the TextView's text to the output of the C++ getScheduleData() function
         // TODO: use today's date instead of hardcoded value
-        String date = "2023-11-21";
-        textView.setText(getScheduleData(date, DEBUG_MODE, cachedHtmlPath));
+        String date = "2023-12-05";
+        System.out.println(getScheduleData(date, DEBUG_MODE, cachedHtmlPath));
     }
 
 
