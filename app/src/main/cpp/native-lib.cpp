@@ -87,20 +87,28 @@ struct TimeBlock {
     }
 };
 
-// TODO: add GPS coordinates for each location
-// these aren't returned by the server so they'd have to be hardcoded
+// Define the HardCodedLocation struct
+struct HardCodedLocation {
+    std::string name;
+    double latitude;
+    double longitude;
+};
+
 struct Location {
     std::string name;
+    // note that 0.0 is a valid value for these if a corresponding HardCodedLocation wasn't found
+    double latitude;
+    double longitude;
     std::string strHours;
     bool favorite;
     bool open;
     std::vector<TimeBlock> hours;
 
-    Location(const std::string& _name, const std::vector<TimeBlock>& _hours)
-            : name(_name), hours(_hours), favorite(false), open(false) {
+    Location(const std::string& _name, double _latitude, double _longitude, const std::vector<TimeBlock>& _hours)
+            : name(_name), latitude(_latitude), longitude(_longitude), hours(_hours), favorite(false), open(false) {
         // create a nice string representation of the data
         strHours = "";
-        for (TimeBlock tb : hours) {
+        for (TimeBlock& tb : hours) {
             strHours += tb.label + ": " + intToTimeStr(tb.start) + " to " + intToTimeStr(tb.end) + "\n";
         }
     }
@@ -112,14 +120,14 @@ struct Location {
         if (!D_TIME) {
             time_t t = time(NULL);
             struct tm* tmPtr = localtime(&t);
-            dlog("current time: %d:%d", tmPtr->tm_hour, tmPtr->tm_min);
+//            dlog("current time: %d:%d", tmPtr->tm_hour, tmPtr->tm_min);
             nowInt = tmPtr->tm_min + tmPtr->tm_hour*60;
         }
         else {
             nowInt = timeStrToInt(D_TIME_VAL);
         }
 
-        for (TimeBlock timeBlock : hours) {
+        for (TimeBlock& timeBlock : hours) {
             if (timeBlock.start <= nowInt && nowInt <= timeBlock.end) {
                 open = true;
                 break;
@@ -324,7 +332,7 @@ std::vector<Location> GetScheduleData(const std::string& date, bool debugMode, s
             }
 
             std::vector<TimeBlock> timeBlocks = parseHrsStr(hrsStr);
-            Location l{locName, timeBlocks};
+            Location l{locName, 0.0, 0.0, timeBlocks};
             // initialize the 'open' flag based on the current time
             l.checkIfOpen();
             locations.push_back(l);
@@ -336,6 +344,17 @@ std::vector<Location> GetScheduleData(const std::string& date, bool debugMode, s
     xmlCleanupParser();
 
     return locations;
+}
+
+// returns 0 on fail, 1 on success
+int searchByName(const std::vector<HardCodedLocation>& hcls, std::string name, HardCodedLocation* out) {
+    for (auto& hcl : hcls) {
+        if (hcl.name == name) {
+            *out = hcl;
+            return 1;
+        }
+    }
+    return 0;
 }
 
 /*
@@ -365,7 +384,44 @@ Java_com_example_myapplication_MainActivity_getScheduleData(
     // the output of the function (basic status info, displayed in TextView)
     std::string out = "TODO OUTPUT";
 
+    // Hardcode GPS coordinates for Mizzou dining locations
+    std::vector<HardCodedLocation> hardcodedLocations = {
+            {"Baja Grill", 38.943203153879246, -92.3267064269865},
+            {"Bookmark Café", 38.94444846006983, -92.32643268762787},
+            {"Do Mundo's", 38.94253788826768, -92.32686662995677},
+            {"Emporium Café", 38.94107459217775, -92.32304902570891},
+            {"infusion", 38.9431030190833, -92.32550479820374},
+            {"Legacy Grill", 38.93918339225931, -92.33160118208086},
+            {"Mort's", 38.9430322404151, -92.32697566673839},
+            {"Plaza 900 Dining", 38.94103367843988, -92.322668187628},
+            {"Potential Energy Café", 38.94623123277513, -92.32956715694311},
+            {"Pizza & MO", 38.94180412624759, -92.32309229325335},
+            {"Wings & MO", 38.94180412624759, -92.32309229325335},
+            {"Sabai", 38.94212344437987, -92.32450920297028},
+            {"Starbucks - Memorial Union", 38.94544954634613, -92.32511273180572},
+            {"Starbucks - Southwest", 38.93916939101163, -92.33207097791104},
+            {"Subway - Southwest", 38.93916939101163, -92.33207097791104},
+            {"Sunshine Sushi", 38.9425837776428, -92.32676330297024},
+            {"The MARK on 5th Street", 38.94533889956199, -92.33233735694316},
+            {"Truffles", 38.93916939101163, -92.33206024907547},
+            {"Wheatstone Bistro", 38.94548111216589, -92.3250477606413},
+            {"Panda Express", 38.94278414251326, -92.32674715879237},
+            {"The Restaurants at Southwest", 38.93912766582345, -92.33210316441776},
+            {"Mizzou Market Central", 38.94254132210812, -92.32717908392979},
+            {"Mizzou Market - Southwest", 38.93921968905726, -92.33280040112133},
+    };
+
     std::vector<Location> locations = GetScheduleData(date, debugMode, cachedHtmlPath);
+
+    // Match locations with corresponding hardcoded coordinates
+    for (Location& l : locations) {
+        HardCodedLocation hcl;
+        int ret = searchByName(hardcodedLocations, l.name, &hcl);
+        if (ret != 0) {
+            l.latitude = hcl.latitude;
+            l.longitude = hcl.longitude;
+        }
+    }
 
     dlog("Successfully parsed\n");
     dlog("List of locations:\n");
@@ -379,6 +435,7 @@ Java_com_example_myapplication_MainActivity_getScheduleData(
             dlog("%s", ("Name: " + location.name + "\n").c_str());
             dlog("%s", (location.strHours).c_str());
             dlog("%s", (std::string("Open: ") + (location.open ? "Yes" : "No") + "\n").c_str());
+            dlog("%s", (std::string("GPS Coordinates: ") + std::to_string(location.latitude) + ", " + std::to_string(location.longitude) + "\n").c_str());
             dlog("====================\n");
         }
     }
