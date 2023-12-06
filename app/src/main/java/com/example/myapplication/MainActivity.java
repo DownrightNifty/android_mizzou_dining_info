@@ -1,5 +1,7 @@
 package com.example.myapplication;
 
+// WARNING: this code may induce vomiting, it was produced in a rush and is not production ready
+
 import static com.example.myapplication.Util.makeToast;
 
 import android.widget.ArrayAdapter;
@@ -44,8 +46,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
-
-
 
 public class MainActivity extends AppCompatActivity {
 
