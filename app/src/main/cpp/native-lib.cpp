@@ -263,11 +263,11 @@ void getElementsByTagName(xmlNode* node, std::string name, std::vector<xmlNode*>
     _getElementsByTagName(node->children, name, results);
 }
 
-std::vector<Location> GetScheduleData(const std::string& date, bool debugMode, std::string cachedHtmlPath) {
+std::vector<Location> GetScheduleData(const std::string& date, bool useCachedData, std::string cachedHtmlPath) {
     std::vector<Location> locations;
 
     std::string html;
-    if (debugMode) {
+    if (useCachedData) {
         // Use cached file for debugging
         std::ifstream file(cachedHtmlPath);
         if (file.is_open()) {
@@ -435,12 +435,12 @@ Java_com_example_myapplication_MainActivity_getScheduleData(
         JNIEnv* env,
         jobject, /* this */
         jstring _date,
-        jboolean _debugMode,
+        jboolean _useCachedData,
         jstring _cachedHtmlPath) {
 
     // convert java parameters to C++ parameters
     std::string date(env->GetStringUTFChars(_date, 0));
-    bool debugMode = (bool)_debugMode;
+    bool useCachedData = (bool)_useCachedData;
     std::string cachedHtmlPath(env->GetStringUTFChars(_cachedHtmlPath, 0));
 
     // the output of the function (basic status info, displayed in TextView)
@@ -473,7 +473,7 @@ Java_com_example_myapplication_MainActivity_getScheduleData(
             {"Mizzou Market - Southwest", 38.93921968905726, -92.33280040112133},
     };
 
-    std::vector<Location> locations = GetScheduleData(date, debugMode, cachedHtmlPath);
+    std::vector<Location> locations = GetScheduleData(date, useCachedData, cachedHtmlPath);
 
     // Match locations with corresponding hardcoded coordinates
     for (Location& l : locations) {
